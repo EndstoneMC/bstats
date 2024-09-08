@@ -24,6 +24,7 @@ classifiers = [
 ]
 
 dependencies = [
+    "schedule",
     "tomlkit"
 ]
 

@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from endstone_bstats._charts import CustomChart
 from typing import Callable
 
@@ -34,7 +36,7 @@ class SimplePie(CustomChart):
 
 class AdvancedPie(CustomChart):
     def __init__(
-        self, chart_id: str, get_values: Callable[[], dict[str, int] | None]
+            self, chart_id: str, get_values: Callable[[], dict[str, int] | None]
     ) -> None:
         """
         Class constructor.

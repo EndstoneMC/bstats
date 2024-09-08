@@ -22,3 +22,6 @@ classifiers = [
     "Programming Language :: Python",
     "Programming Language :: Python :: 3",
 ]
+
+[project.optional-dependencies]
+dev = ["pytest", "pytest-cov"]

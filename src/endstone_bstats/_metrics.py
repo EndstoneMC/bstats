@@ -144,7 +144,7 @@ class Metrics:
             config = tomlkit.document()
 
         # Check if the config file exists
-        if not "server-uuid" in config:
+        if "server-uuid" not in config:
             config.setdefault("enabled", True)
             config.setdefault("server-uuid", str(uuid.uuid4()))
             config.setdefault("log-failed-requests", False)

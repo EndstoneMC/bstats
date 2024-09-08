@@ -1,5 +1,5 @@
 import pytest
-from endstone_bstats import SimplePie, ChartDataError
+from endstone_bstats import SimplePie
 
 
 def test_valid_simple_pie():

@@ -28,8 +28,8 @@ class MetricsBase:
         server_uuid: uuid.UUID,
         service_id: int,
         enabled: bool,
-        platform_data_appender: Callable[[Dict[str, Any]], Dict[str, Any]],
-        service_data_appender: Callable[[Dict[str, Any]], Dict[str, Any]],
+        platform_data_appender: Callable[[Dict[str, Any]], None],
+        service_data_appender: Callable[[Dict[str, Any]], None],
         task_submitter: Optional[Callable[[Callable[[], None]], None]],
         check_service_enabled: Callable[[], bool],
         error_logger: Callable[[str, Exception], None],
@@ -46,8 +46,8 @@ class MetricsBase:
             server_uuid (uuid.UUID): The server UUID.
             service_id (int): The service ID.
             enabled (bool): Whether or not data sending is enabled.
-            platform_data_appender (Callable[[Dict[str, Any]], Dict[str, Any]]): A consumer to append platform-specific data.
-            service_data_appender (Callable[[Dict[str, Any]], Dict[str, Any]]): A consumer to append service-specific data.
+            platform_data_appender (Callable[[Dict[str, Any]], None]): A consumer to append platform-specific data.
+            service_data_appender (Callable[[Dict[str, Any]], None]): A consumer to append service-specific data.
             task_submitter (Optional[Callable[[Callable[[], None]], None]]): A consumer to handle the submit task.
             check_service_enabled (Callable[[], bool]): A supplier to check if the service is still enabled.
             error_logger (Callable[[str, Exception], None]): A consumer for error logging.
@@ -116,8 +116,11 @@ class MetricsBase:
         Constructs the JSON data and sends it to bStats.
         """
 
-        base_json = self._platform_data_appender({})
-        service_json = self._service_data_appender({})
+        platform_data = {}
+        self._platform_data_appender(platform_data)
+
+        service_data = {}
+        self._service_data_appender(service_data)
 
         chart_data = []
         for chart in self._custom_charts:
@@ -125,14 +128,14 @@ class MetricsBase:
                 chart.get_request_json_object(self._error_logger, self._log_errors)
             )
 
-        service_json["id"] = self._service_id
-        service_json["customCharts"] = chart_data
-        base_json["service"] = service_json
-        base_json["serverUUID"] = str(self._server_uuid)
-        # base_json["metricsVersion"] = self.METRICS_VERSION
+        service_data["id"] = self._service_id
+        service_data["customCharts"] = chart_data
+        platform_data["service"] = service_data
+        platform_data["serverUUID"] = str(self._server_uuid)
+        # platform_data["metricsVersion"] = self.METRICS_VERSION
 
         try:
-            self._send_data(base_json)
+            self._send_data(platform_data)
         except Exception as e:
             if self._log_errors:
                 self._error_logger("Could not submit bStats metrics data", e)

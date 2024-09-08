@@ -4,9 +4,7 @@ from pathlib import Path
 import pytest
 import tomlkit
 
-from endstone_bstats import (
-    MetricsConfig,
-)  # Make sure to import the class from the appropriate module
+from endstone_bstats import MetricsConfig
 
 
 @pytest.fixture

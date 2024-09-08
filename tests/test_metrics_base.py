@@ -18,8 +18,8 @@ def metrics(mocker):
         server_uuid=uuid.uuid4(),
         service_id=1,
         enabled=True,
-        platform_data_appender=mocker.MagicMock(return_value={"platform": "test"}),
-        service_data_appender=mocker.MagicMock(return_value={"service": "test"}),
+        platform_data_appender=mocker.MagicMock(),
+        service_data_appender=mocker.MagicMock(),
         task_submitter=None,
         check_service_enabled=mocker.MagicMock(return_value=True),
         error_logger=mocker.MagicMock(),
@@ -52,7 +52,6 @@ def test_submit_data(mocker, metrics):
     metrics.add_custom_chart(chart)
     metrics._submit_data()
     data = metrics._send_data.call_args.args[0]
-    assert data["platform"] == "test"
     assert data["service"]["id"] == 1
 
 

@@ -24,7 +24,7 @@ def test_valid_chart_data():
 
 def test_empty_chart_id():
     with pytest.raises(ValueError, match="chart_id cannot be None or empty!"):
-        chart = TestCustomChart("", {"key": "value"})
+        TestCustomChart("", {"key": "value"})
 
 
 def test_chart_data_returns_none():
@@ -36,8 +36,10 @@ def test_chart_data_exception():
     exception_message = "Data retrieval error"
     chart = TestCustomChart("chart_throws_exception", Exception(exception_message))
 
-    with pytest.raises(ChartDataError,
-                       match="Failed to get data for custom chart with id chart_throws_exception") as exc_info:
+    with pytest.raises(
+        ChartDataError,
+        match="Failed to get data for custom chart with id chart_throws_exception",
+    ) as exc_info:
         chart._get_request_json_object()
 
     assert str(exc_info.value.__cause__) == exception_message

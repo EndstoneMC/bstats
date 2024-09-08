@@ -5,6 +5,7 @@ class ChartDataError(Exception):
     """
     Custom exception for errors when getting chart data.
     """
+
     pass
 
 
@@ -47,12 +48,14 @@ class CustomChart(ABC):
             chart["data"] = data
 
         except Exception as e:
-            raise ChartDataError(f"Failed to get data for custom chart with id {self.chart_id}") from e
+            raise ChartDataError(
+                f"Failed to get data for custom chart with id {self.chart_id}"
+            ) from e
 
         return chart
 
     @abstractmethod
-    def get_chart_data(self) -> dict:
+    def get_chart_data(self) -> dict | None:
         """
         Gets the data for the chart.
 

@@ -1,7 +1,9 @@
-import pytest
 import threading
 import time
 from datetime import datetime
+
+import pytest
+
 from endstone_bstats._executor import ScheduledThreadPoolExecutor
 
 
@@ -41,9 +43,10 @@ def test_shutdown(executor):
     def task():
         executed.set()
 
-    executor.submit(task, delay_secs=1)
+    executor.submit(task, delay_secs=2)
     executor.shutdown()
     assert executor.shutdown_event.is_set()
+    assert not executed.is_set()
 
 
 def test_submit_args(executor):

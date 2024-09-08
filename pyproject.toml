@@ -24,9 +24,10 @@ classifiers = [
 ]
 
 dependencies = [
+    "requests",
     "schedule",
     "tomlkit"
 ]
 
 [project.optional-dependencies]
-dev = ["pytest", "pytest-cov"]
+dev = ["pytest", "pytest-cov", "pytest-mock"]

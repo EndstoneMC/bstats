@@ -30,4 +30,4 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-dev = ["endstone", "pytest", "pytest-cov", "pytest-mock"]
+dev = ["endstone", "pytest", "pytest-cov", "pytest-mock", "requests-mock"]

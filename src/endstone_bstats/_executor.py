@@ -16,7 +16,7 @@ class ScheduledThreadPoolExecutor:
     def run(self) -> None:
         while not self.shutdown_event.is_set():
             self.scheduler.run_pending()
-            time.sleep(1)
+            time.sleep(0.1)
 
     def shutdown(self) -> None:
         self.shutdown_event.set()

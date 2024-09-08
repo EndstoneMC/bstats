@@ -23,5 +23,9 @@ classifiers = [
     "Programming Language :: Python :: 3",
 ]
 
+dependencies = [
+    "tomlkit"
+]
+
 [project.optional-dependencies]
 dev = ["pytest", "pytest-cov"]

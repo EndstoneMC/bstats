@@ -24,7 +24,7 @@ class Metrics:
         self._plugin = plugin
 
         # Get the config file
-        bstats_folder = Path(plugin.data_folder).parent / "bStats"
+        bstats_folder = Path(plugin.data_folder).parent / "bstats"
         config_file = bstats_folder / "config.toml"
         config = MetricsConfig(config_file, True)
 

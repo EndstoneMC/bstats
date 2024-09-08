@@ -1,14 +1,16 @@
 from __future__ import annotations
 
+import gzip
+import io
+import multiprocessing as mp
 import os
 import platform
 import sys
 import uuid
-import gzip
-import io
+from pathlib import Path
+
 import tomlkit
 from endstone.plugin import Plugin
-from pathlib import Path
 
 from endstone_bstats import CustomChart
 
@@ -39,6 +41,9 @@ class Metrics:
     _log_response_status_text: bool
     _server_uuid: uuid.UUID
 
+    __instances: dict[Plugin, Metrics] = {}
+    __scheduler: mp.Process | None = None
+
     def __init__(self, plugin: Plugin, plugin_id: int) -> None:
         """
         Initializes the Metrics class with the provided plugin and plugin ID.
@@ -55,6 +60,11 @@ class Metrics:
         self._charts: list[CustomChart] = []
 
         self._load_config()
+
+        if self.enabled:
+            Metrics.__instances[self._plugin] = self
+            if not Metrics.__scheduler:
+                self._start_submitting()
 
     @property
     def enabled(self) -> bool:
@@ -76,16 +86,38 @@ class Metrics:
         self._charts.append(chart)
 
     @property
-    def _server_data(self) -> dict:
+    def plugin_data(self) -> dict:
         """
-        Gets the server-specific data.
+        Gets the plugin specific data.
 
         Returns:
-            dict: The server-specific data.
+            dict: The plugin specific data.
+        """
+
+        custom_charts = []
+        for chart in self._charts:
+            chart_data = chart.get_chart_data()
+            if chart_data is not None:
+                custom_charts.append(chart_data)
+
+        return {
+            "pluginName": self._plugin.description.name,
+            "id": self._plugin_id,
+            "pluginVersion": self._plugin.description.version,
+            "customCharts": custom_charts,
+        }
+
+    @property
+    def _server_data(self) -> dict:
+        """
+        Gets the server specific data.
+
+        Returns:
+            dict: The server specific data.
         """
 
         server = self._plugin.server
-        data = {
+        return {
             "serverUUID": str(self._server_uuid),
             "playerAmount": len(server.online_players),
             # TODO: online mode
@@ -97,7 +129,9 @@ class Metrics:
             "osVersion": platform.release(),
             "coreCount": os.cpu_count(),
         }
-        return data
+
+    def _start_submitting(self) -> None:
+        raise NotImplementedError()
 
     def _load_config(self) -> None:
         # Get the config file

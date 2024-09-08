@@ -1,5 +1,6 @@
 import pytest
-from endstone_bstats import CustomChart, ChartDataError
+
+from endstone_bstats import ChartDataError, CustomChart
 
 
 class TestCustomChart(CustomChart):

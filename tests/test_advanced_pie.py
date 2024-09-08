@@ -1,4 +1,5 @@
 import pytest
+
 from endstone_bstats import AdvancedPie
 
 

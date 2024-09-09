@@ -26,10 +26,8 @@ class SimplePie(CustomChart):
             dict | None: A dictionary with the chart data.
         """
 
-        data = {}
         value = self.get_value()
         if not value:
             return None  # skip the chart
 
-        data["value"] = value
-        return data
+        return {"value": value}

@@ -4,11 +4,11 @@ bStats Metrics for Endstone Plugins
 
 ## Features
 
-- [ ] Metrics Class
+- [x] Metrics Class
 - Custom Charts
     - [x] Simple Pie
     - [x] Advanced Pie
-    - [ ] Drilldown Pie
+    - [x] Drilldown Pie
     - [ ] Single Line
     - [ ] Multi Line
     - [ ] Simple Bar

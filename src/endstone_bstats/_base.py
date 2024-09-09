@@ -1,16 +1,18 @@
 import gzip
 import json
+import logging
 import random
 import uuid
+from abc import ABC, abstractmethod
 from io import BytesIO
-from typing import Any, Callable, Dict, Optional, Set
+from typing import Any, Callable, Dict, Set, final
 
 import requests
 
 from endstone_bstats._executor import ScheduledThreadPoolExecutor
 
 
-class MetricsBase:
+class MetricsBase(ABC):
     """
     The MetricsBase class to handle sending metrics to bStats.
 
@@ -27,13 +29,6 @@ class MetricsBase:
         platform: str,
         server_uuid: uuid.UUID,
         service_id: int,
-        enabled: bool,
-        platform_data_appender: Callable[[Dict[str, Any]], None],
-        service_data_appender: Callable[[Dict[str, Any]], None],
-        task_submitter: Optional[Callable[[Callable[[], None]], None]],
-        check_service_enabled: Callable[[], bool],
-        error_logger: Callable[[str, Exception], None],
-        info_logger: Callable[[str], None],
         log_errors: bool,
         log_sent_data: bool,
         log_response_status_text: bool,
@@ -45,36 +40,83 @@ class MetricsBase:
             platform (str): The platform of the service.
             server_uuid (uuid.UUID): The server UUID.
             service_id (int): The service ID.
-            enabled (bool): Whether or not data sending is enabled.
-            platform_data_appender (Callable[[Dict[str, Any]], None]): A consumer to append platform-specific data.
-            service_data_appender (Callable[[Dict[str, Any]], None]): A consumer to append service-specific data.
-            task_submitter (Optional[Callable[[Callable[[], None]], None]]): A consumer to handle the submit task.
-            check_service_enabled (Callable[[], bool]): A supplier to check if the service is still enabled.
-            error_logger (Callable[[str, Exception], None]): A consumer for error logging.
-            info_logger (Callable[[str], None]): A consumer for info logging.
-            log_errors (bool): Whether or not errors should be logged.
-            log_sent_data (bool): Whether or not the sent data should be logged.
-            log_response_status_text (bool): Whether or not the response status text should be logged.
+            log_errors (bool): Whether errors should be logged.
+            log_sent_data (bool): Whether the data sent should be logged.
+            log_response_status_text (bool): Whether the response status text should be logged.
         """
         self._platform = platform
         self._server_uuid = server_uuid
         self._service_id = service_id
-        self._enabled = enabled
-        self._platform_data_appender = platform_data_appender
-        self._service_data_appender = service_data_appender
-        self._task_submitter = task_submitter
-        self._check_service_enabled = check_service_enabled
-        self._error_logger = error_logger
-        self._info_logger = info_logger
         self._log_errors = log_errors
         self._log_sent_data = log_sent_data
         self._log_response_status_text = log_response_status_text
         self._custom_charts: Set = set()
         self._executor = ScheduledThreadPoolExecutor(max_workers=1)
 
-        if self._enabled:
+        if self.enabled:
             self._start_submitting()
 
+    @property
+    @abstractmethod
+    def enabled(self) -> bool:
+        """
+        Whether data sending is enabled.
+        """
+
+    @property
+    @abstractmethod
+    def service_enabled(self) -> bool:
+        """
+        Whether the service is enabled.
+        """
+
+    def append_platform_data(self, data: Dict[str, Any]) -> None:
+        """
+        Append platform-specific data.
+
+        Args:
+            data (Dict[str, Any]): The data to append platform-specific values to.
+        """
+        pass
+
+    def append_service_data(self, data: Dict[str, Any]) -> None:
+        """
+        Append service-specific data.
+
+        Args:
+            data (Dict[str, Any]): The data to append service-specific values to.
+        """
+        pass
+
+    def submit_task(self, task: Callable[[], None]) -> None:
+        """
+        Submit the given task
+
+        Args:
+            task (Callable[[], None]): The task to be submitted.
+        """
+        task()
+
+    def log_info(self, message: str) -> None:
+        """
+        Logs info message.
+
+        Args:
+            message (str): The info message.
+        """
+        logging.info(message)
+
+    def log_error(self, message: str, exception: Exception) -> None:
+        """
+        Logs error message.
+
+        Args:
+            message (str): The error message.
+            exception (Exception): The exception that occurred.
+        """
+        logging.warning(message, exc_info=exception)
+
+    @final
     def add_custom_chart(self, chart: Any):
         """
         Adds a custom chart.
@@ -84,24 +126,23 @@ class MetricsBase:
         """
         self._custom_charts.add(chart)
 
+    @final
     def shutdown(self):
         """Shuts down the scheduler."""
         self._executor.shutdown()
 
+    @final
     def _start_submitting(self):
         """
         Starts the submitting process with initial and periodic delays.
         """
 
         def submit_task():
-            if not self._enabled or not self._check_service_enabled():
+            if not self.enabled or not self.service_enabled:
                 self.shutdown()
                 return
 
-            if self._task_submitter is not None:
-                self._task_submitter(self._submit_data)
-            else:
-                self._submit_data()
+            self.submit_task(self._submit_data)
 
         initial_delay = int((3 + random.random() * 3) * 60)
         second_delay = int((random.random() * 30) * 60)
@@ -111,35 +152,41 @@ class MetricsBase:
             submit_task, initial_delay + second_delay, 60 * 30
         )
 
+    @final
     def _submit_data(self):
         """
         Constructs the JSON data and sends it to bStats.
         """
 
         platform_data = {}
-        self._platform_data_appender(platform_data)
+        self.append_platform_data(platform_data)
 
         service_data = {}
-        self._service_data_appender(service_data)
+        self.append_service_data(service_data)
 
         chart_data = []
         for chart in self._custom_charts:
-            chart_data.append(
-                chart.get_request_json_object(self._error_logger, self._log_errors)
-            )
+            try:
+                chart_data.append(chart._get_request_json_object())
+            except Exception as e:
+                if self._log_errors:
+                    self.log_error(
+                        f"Failed to get data for custom chart with id {chart.chart_id}",
+                        e,
+                    )
 
         service_data["id"] = self._service_id
         service_data["customCharts"] = chart_data
         platform_data["service"] = service_data
         platform_data["serverUUID"] = str(self._server_uuid)
-        # platform_data["metricsVersion"] = self.METRICS_VERSION
 
         try:
             self._send_data(platform_data)
         except Exception as e:
             if self._log_errors:
-                self._error_logger("Could not submit bStats metrics data", e)
+                self.log_error("Could not submit bStats metrics data", e)
 
+    @final
     def _send_data(self, data: Dict[str, Any]):
         """
         Sends the JSON data to bStats.
@@ -148,7 +195,7 @@ class MetricsBase:
             data: The JSON data to send.
         """
         if self._log_sent_data:
-            self._info_logger(f"Sent bStats metrics data: {data}")
+            self.log_info(f"Sent bStats metrics data: {data}")
 
         url = self.REPORT_URL.format(platform=self._platform)
         compressed_data = self._compress(data)
@@ -166,9 +213,7 @@ class MetricsBase:
         response.raise_for_status()
 
         if self._log_response_status_text:
-            self._info_logger(
-                f"Sent data to bStats and received response: {response.text}"
-            )
+            self.log_info(f"Sent data to bStats and received response: {response.text}")
 
     @staticmethod
     def _compress(data: Dict[str, Any]) -> bytes:

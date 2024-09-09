@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
+from typing import final
 
 from endstone_bstats._errors import ChartDataError
 
@@ -25,6 +26,7 @@ class CustomChart(ABC):
 
         self.chart_id = chart_id
 
+    @final
     def _get_request_json_object(self) -> dict | None:
         """
         Gets the JSON object for the chart request.

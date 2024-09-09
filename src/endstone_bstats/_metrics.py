@@ -1,6 +1,5 @@
 import os
 import platform
-import sys
 from pathlib import Path
 from typing import Any, Callable, Dict
 
@@ -52,14 +51,9 @@ class Metrics(MetricsBase):
         Args:
             platform_data (Dict[str, Any]): The dict to append data to.
         """
-        # TODO: implement the following
         platform_data["playerAmount"] = len(self._plugin.server.online_players)
-        # platform_data["onlineMode"] = 1 if Bukkit.get_online_mode() else 0
-        platform_data["endstoneVersion"] = self._plugin.server.version
+        # platform_data["onlineMode"] = 1 if Bukkit.get_online_mode() else 0 # TODO: implement this
         platform_data["minecraftVersion"] = self._plugin.server.minecraft_version
-        platform_data["pythonVersion"] = (
-            f"{sys.version_info.major}.{sys.version_info.minor}"
-        )
         platform_data["osName"] = platform.system()
         platform_data["osArch"] = platform.machine().lower()
         platform_data["osVersion"] = platform.release()

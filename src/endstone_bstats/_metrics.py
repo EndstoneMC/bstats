@@ -1,8 +1,8 @@
-import os
 import platform
 from pathlib import Path
 from typing import Any, Callable, Dict
 
+import psutil
 from endstone.plugin import Plugin
 
 from endstone_bstats._base import MetricsBase
@@ -71,7 +71,7 @@ class Metrics(MetricsBase):
             platform_data["osVersion"] = platform.release()
 
         platform_data["osArch"] = platform.machine().lower()
-        platform_data["coreCount"] = os.cpu_count()
+        platform_data["coreCount"] = psutil.cpu_count(logical=False)
 
     def append_service_data(self, service_data: Dict[str, Any]):
         """

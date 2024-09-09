@@ -1,6 +1,5 @@
-import pytest
 from unittest.mock import Mock
-from typing import Dict, Optional
+
 from endstone_bstats._charts.drilldown_pie import DrilldownPie
 
 
@@ -27,7 +26,7 @@ def test_get_chart_data_valid():
     data = {
         "Category A": {"Sub A1": 10, "Sub A2": 20},
         "Category B": {"Sub B1": 15, "Sub B2": 25},
-        "Category C": {}
+        "Category C": {},
     }
     callable_mock = Mock(return_value=data)
     drilldown_pie = DrilldownPie("chart_id", callable_mock)
@@ -36,7 +35,7 @@ def test_get_chart_data_valid():
     expected_result = {
         "values": {
             "Category A": {"Sub A1": 10, "Sub A2": 20},
-            "Category B": {"Sub B1": 15, "Sub B2": 25}
+            "Category B": {"Sub B1": 15, "Sub B2": 25},
         }
     }
     assert result == expected_result
@@ -62,11 +61,7 @@ def test_get_chart_data_some_empty_values():
 
 def test_get_chart_data_all_empty_values():
     """Test that get_chart_data returns None when all sub-dictionaries in the callable result are empty."""
-    data = {
-        "Category A": {},
-        "Category B": {},
-        "Category C": {}
-    }
+    data = {"Category A": {}, "Category B": {}, "Category C": {}}
     callable_mock = Mock(return_value=data)
     drilldown_pie = DrilldownPie("chart_id", callable_mock)
 

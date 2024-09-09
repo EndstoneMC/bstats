@@ -1,5 +1,3 @@
-import pytest
-
 from endstone_bstats import AdvancedPie
 
 
@@ -31,7 +29,3 @@ def test_advanced_pie_chart_data_mixed_values():
         lambda: {"key1": 0, "key2": 10, "key3": 0},
     )
     assert chart.get_chart_data() == {"values": {"key2": 10}}
-
-
-if __name__ == "__main__":
-    pytest.main()

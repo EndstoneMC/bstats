@@ -9,7 +9,7 @@ bStats Metrics for Endstone Plugins
     - [x] Simple Pie
     - [x] Advanced Pie
     - [x] Drilldown Pie
-    - [ ] Single Line
+    - [x] Single Line
     - [ ] Multi Line
     - [ ] Simple Bar
     - [ ] Advanced Bar

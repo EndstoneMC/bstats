@@ -1,5 +1,3 @@
-import pytest
-
 from endstone_bstats import SimplePie
 
 
@@ -16,7 +14,3 @@ def test_simple_pie_data_empty_string():
 def test_simple_pie_data_none():
     chart = SimplePie("simple_pie_with_none", lambda: None)
     assert chart.get_chart_data() is None
-
-
-if __name__ == "__main__":
-    pytest.main()

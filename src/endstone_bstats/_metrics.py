@@ -29,7 +29,7 @@ class Metrics(MetricsBase):
         self._config = MetricsConfig(config_file, True)
 
         super().__init__(
-            platform="server-implementation",
+            platform="bukkit",
             server_uuid=self._config.server_uuid,
             service_id=service_id,
             log_errors=self._config.log_errors_enabled,

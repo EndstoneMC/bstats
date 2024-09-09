@@ -39,7 +39,7 @@ class Metrics(MetricsBase):
         )
 
         self.add_custom_chart(
-            SimplePie("endstone_version", lambda: self._server.version)
+            SimplePie("endstone_version", lambda: self._plugin.server.version)
         )
         self.add_custom_chart(DrilldownPie("python_version", self._get_python_version))
 

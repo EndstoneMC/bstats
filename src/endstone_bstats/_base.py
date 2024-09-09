@@ -167,7 +167,9 @@ class MetricsBase(ABC):
         chart_data = []
         for chart in self._custom_charts:
             try:
-                chart_data.append(chart._get_request_json_object())
+                chart_json = chart._get_request_json_object()
+                if chart_json is not None:
+                    chart_data.append(chart_json)
             except Exception as e:
                 if self._log_errors:
                     self.log_error(

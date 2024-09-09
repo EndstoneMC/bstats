@@ -1,5 +1,3 @@
-import platform
-
 import pytest
 
 from endstone_bstats import Metrics
@@ -36,15 +34,42 @@ def test_service_enabled(metrics, plugin):
     assert metrics.service_enabled == plugin.enabled
 
 
-def test_append_platform_data(mocker, metrics, plugin):
+@pytest.mark.parametrize(
+    "os_name, release, version, os_name_expected, os_version_expected",
+    [
+        (
+            "Windows",
+            "10",
+            "10.0.19041",
+            "Windows 10",
+            "10.0.19041",
+        ),
+        (
+            "Linux",
+            "5.4.0-42-generic",
+            "#46-Ubuntu SMP Fri Jul 10 00:24:02 UTC 2020",
+            "Linux",
+            "5.4.0-42-generic",
+        ),
+    ],
+)
+def test_append_platform_data(
+    metrics, mocker, os_name, release, version, os_name_expected, os_version_expected
+):
     platform_data = {}
+
     mocker.patch("os.cpu_count", return_value=4)
+    mocker.patch("platform.system", return_value=os_name)
+    mocker.patch("platform.release", return_value=release)
+    mocker.patch("platform.version", return_value=version)
+    mocker.patch("platform.machine", return_value="AMD64")
 
     metrics.append_platform_data(platform_data)
-    assert platform_data["playerAmount"] == len(plugin.server.online_players)
-    assert platform_data["osName"] == platform.system()
-    assert platform_data["osArch"] == platform.machine().lower()
-    assert platform_data["osVersion"] == platform.release()
+
+    assert platform_data["playerAmount"] == 3
+    assert platform_data["osName"] == os_name_expected
+    assert platform_data["osVersion"] == os_version_expected
+    assert platform_data["osArch"] == "amd64"
     assert platform_data["coreCount"] == 4
 
 
@@ -71,3 +96,10 @@ def test_log_error(metrics, plugin):
     exception = Exception("Test exception")
     metrics.log_error(message, exception)
     plugin.logger.warning.assert_called_once_with(f"{message}: {exception}")
+
+
+def test_get_python_version(mocker, metrics):
+    mocker.patch("platform.python_implementation", return_value="CPython")
+    mocker.patch("platform.python_version_tuple", return_value=(3, 12, 4))
+    version_data = metrics._get_python_version()
+    assert version_data == {"CPython 3.12": {"CPython 3.12.4": 1}}

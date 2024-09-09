@@ -6,6 +6,8 @@ from typing import Any, Callable, Dict
 from endstone.plugin import Plugin
 
 from endstone_bstats._base import MetricsBase
+from endstone_bstats._charts.drilldown_pie import DrilldownPie
+from endstone_bstats._charts.simple_pie import SimplePie
 from endstone_bstats._config import MetricsConfig
 
 
@@ -36,6 +38,11 @@ class Metrics(MetricsBase):
             log_response_status_text=self._config.log_response_status_text_enabled,
         )
 
+        self.add_custom_chart(
+            SimplePie("endstone_version", lambda: self._server.version)
+        )
+        self.add_custom_chart(DrilldownPie("python_version", self._get_python_version))
+
     @property
     def enabled(self) -> bool:
         return self._config.enabled
@@ -54,9 +61,16 @@ class Metrics(MetricsBase):
         platform_data["playerAmount"] = len(self._plugin.server.online_players)
         # platform_data["onlineMode"] = 1 if Bukkit.get_online_mode() else 0 # TODO: implement this
         platform_data["minecraftVersion"] = self._plugin.server.minecraft_version
-        platform_data["osName"] = platform.system()
+
+        os_name = platform.system()
+        if os_name == "Windows":
+            platform_data["osName"] = f"Windows {platform.release()}"
+            platform_data["osVersion"] = platform.version()
+        elif os_name == "Linux":
+            platform_data["osName"] = "Linux"
+            platform_data["osVersion"] = platform.release()
+
         platform_data["osArch"] = platform.machine().lower()
-        platform_data["osVersion"] = platform.release()
         platform_data["coreCount"] = os.cpu_count()
 
     def append_service_data(self, service_data: Dict[str, Any]):
@@ -76,3 +90,12 @@ class Metrics(MetricsBase):
 
     def log_error(self, message: str, exception: Exception) -> None:
         self._plugin.logger.warning(f"{message}: {exception}")
+
+    def _get_python_version(self) -> dict[str, dict[str, int]]:
+        python_impl = platform.python_implementation()
+        major, minor, patch = platform.python_version_tuple()
+        return {
+            f"{python_impl} {major}.{minor}": {
+                f"{python_impl} {major}.{minor}.{patch}": 1,
+            },
+        }

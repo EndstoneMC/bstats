@@ -7,7 +7,7 @@ from endstone_bstats._charts.custom_chart import CustomChart
 
 class SimpleBarChart(CustomChart):
     def __init__(
-        self, chart_id: str, get_values: Callable[[], Dict[str, int] | None]
+            self, chart_id: str, get_values: Callable[[], Dict[str, int] | None]
     ) -> None:
         """
         Class constructor.
@@ -31,7 +31,5 @@ class SimpleBarChart(CustomChart):
             return None
 
         values = {key: [value] for key, value in map_values.items()}
-        if not values:
-            return None
 
         return {"values": values}

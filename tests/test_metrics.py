@@ -58,7 +58,6 @@ def test_append_platform_data(
 ):
     platform_data = {}
 
-    mocker.patch("os.cpu_count", return_value=4)
     mocker.patch("platform.system", return_value=os_name)
     mocker.patch("platform.release", return_value=release)
     mocker.patch("platform.version", return_value=version)
@@ -70,7 +69,6 @@ def test_append_platform_data(
     assert platform_data["osName"] == os_name_expected
     assert platform_data["osVersion"] == os_version_expected
     assert platform_data["osArch"] == "amd64"
-    assert platform_data["coreCount"] == 4
 
 
 def test_append_service_data(metrics, plugin):

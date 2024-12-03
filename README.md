@@ -38,9 +38,11 @@ from endstone_bstats import Metrics
 
 class ExamplePlugin(Plugin):
     def on_enable(self):
-        # Initialize Metrics
         plugin_id = 1234  # <-- Replace with the id of your plugin!
-        metrics = Metrics(self, plugin_id)
+        self._metrics = Metrics(self, plugin_id)
+
+    def on_disable(self):
+        self._metrics.shutdown()
 ```
 
 After adding bStats to your plugin you have to [create an account](https://bstats.org/register) to register your plugin.
@@ -66,10 +68,13 @@ from endstone_bstats import Metrics, SimplePie
 class ExamplePlugin(Plugin):
     def on_enable(self):
         plugin_id = 1234  # <-- Replace with the id of your plugin!
-        metrics = Metrics(self, plugin_id)
-        metrics.add_custom_chart(
+        self._metrics = Metrics(self, plugin_id)
+        self._metrics.add_custom_chart(
             SimplePie("used_language", lambda: "en_US")
         )
+
+    def on_disable(self):
+        self._metrics.shutdown()
 ```
 
 ## Contributing
